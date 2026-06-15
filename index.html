@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <title>FORJADO | Disciplina y Fe</title>
+    <meta name="description" content="App para hombres cristianos: Devocionales, Ejercicio y Nutrición.">
+    <meta name="theme-color" content="#0D0D0D">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Configuración de Tailwind basada en la paleta de colores -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        main: '#0D0D0D',       // Fondo Principal (Negro Carbón)
+                        surface: '#1A1A1A',    // Fondo Secundario (Grafito)
+                        elevated: '#252525',   // Fondo Elevado (Hierro Oscuro)
+                        accent: '#C8861A',     // Acento Principal (Ámbar Fuego)
+                        accentSec: '#D4A853',  // Acento Secundario (Bronce Suave)
+                        textMain: '#F2EDE6',   // Texto Principal (Blanco Cálido)
+                        textSec: '#9A8F82',    // Texto Secundario (Gris Arena)
+                        borderUI: '#333333',   // Línea / Separador (Hierro Medio)
+                        success: '#5A7A45',    // Éxito / Completado (Verde Oliva)
+                        alert: '#8B3A2A'       // Alerta / Urgente (Rojo Ladrillo)
+                    },
+                    fontFamily: {
+                        playfair: ['"Playfair Display"', 'serif'],
+                        cormorant: ['"Cormorant Garamond"', 'serif'],
+                        inter: ['"Inter"', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
+
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- React & ReactDOM CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        body {
+            background-color: #0D0D0D;
+            color: #F2EDE6;
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* Ocultar barra de desplazamiento */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slide-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .animate-fade-in { animation: fade-in 0.4s ease-out forwards; }
+        .animate-slide-up { animation: slide-up 0.5s ease-out forwards; }
+
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom, 20px); }
+        .pt-safe { padding-top: env(safe-area-inset-top, 20px); }
+    </style>
+</head>
+<body class="selection:bg-accent selection:text-white">
+    <div id="root"></div>
+
+    <!-- Bases de Datos (JS Estándar para evitar errores de Scope en Babel) -->
+    <script>
+        const DAILY_TIPS = [
+            "Fija un horario innegociable para tu entrenamiento de hoy. Lo que no se agenda, no se hace.",
+            "Lee el capítulo bíblico completo de donde sale el versículo de hoy. El contexto te dará mayor profundidad.",
+            "Bebe dos vasos de agua justo al despertar. Reactivarás tu metabolismo y limpiarás tu organismo.",
+            "La motivación es temporal, la disciplina es duradera. Haz tu rutina hoy aunque la motivación sea cero.",
+            "Prioriza la técnica sobre la velocidad en tus ejercicios. Un movimiento bien hecho previene lesiones.",
+            "Hoy ora en voz alta. Declara tus peticiones y agradecimientos con autoridad y claridad.",
+            "Prepara tus comidas o snacks desde la noche anterior. La improvisación suele llevar a malas decisiones.",
+            "Desconéctate de las pantallas (celular, TV) al menos 1 hora antes de dormir. Tu descanso mejorará radicalmente.",
+            "Remplaza la queja por gratitud, especialmente cuando el entrenamiento se vuelva difícil.",
+            "Si fallaste ayer en una comida o hábito, no te castigues. El evangelio es gracia; retoma el plan hoy mismo.",
+            "Designa un lugar específico, silencioso y ordenado para tu devocional diario. Hazlo tu 'cuarto de guerra'.",
+            "La respiración en el ejercicio: Inhala al bajar (fase excéntrica) y exhala fuerte al empujar o subir.",
+            "Haz un 'ayuno mediático' hoy. Elimina el consumo de redes sociales y usa ese tiempo para reflexionar.",
+            "Respeta tus horas de sueño (7-8 horas). El músculo se rompe en el entrenamiento, pero crece mientras duermes.",
+            "Comparte tu progreso o una lucha con un hermano en la fe. Rendir cuentas forja el carácter.",
+            "Si no puedes hacer un ejercicio completo, modifícalo (ej. flexiones con rodillas), pero no te rindas.",
+            "Acompaña tu devocional de hoy leyendo un capítulo de Proverbios correspondiente al día del mes.",
+            "Cuida tu postura a lo largo del día: pecho fuera, hombros hacia atrás y mirada al frente.",
+            "Identifica tus 'detonantes' de malos hábitos (estrés, aburrimiento) y ten un plan de acción para evitarlos.",
+            "Si tienes familia, ora por ellos hoy imponiendo manos o mencionándolos por nombre específicamente.",
+            "Añade 1 repetición extra a tu última serie hoy. Obliga a tu cuerpo a salir de la zona de confort.",
+            "Medita en el versículo del devocional mientras haces tu rutina de ejercicio. Repítelo en tu mente.",
+            "Mastica tu comida al menos 20 veces por bocado. Mejorará tu digestión y te saciarás más rápido.",
+            "El descanso activo también cuenta. Si hoy es día de descanso, sal a caminar 20 minutos.",
+            "Escribe en un cuaderno o nota la frase principal que Dios te habló en el devocional de hoy.",
+            "Evita consumir tus calorías en líquidos (refrescos, jugos). Prioriza agua pura, té o café negro.",
+            "Conexión mente-músculo: Mientras haces el ejercicio, concéntrate mentalmente en el músculo que está trabajando.",
+            "'El hierro se afila con hierro'. Busca el consejo de un hombre mayor o más sabio en tu congregación esta semana.",
+            "Distingue entre dolor de esfuerzo (bueno) y dolor articular (malo). Si sientes punzadas en articulaciones, ajusta la postura.",
+            "Termina este ciclo dando la gloria a Dios. Reconoce que la fuerza y la voluntad que has forjado provienen de Él."
+        ];
+
+        const DEVOTIONALS_DB = [
+            { id: 1, title: "Adán: El Custodio que Falló y el Custodio que Venció", verse: "Génesis 2:15-17 y 3:6-7", content: "Dios puso a Adán en el jardín con una doble vocación: labrar (abad: trabajar, servir) y guardar (shamar: vigilar, proteger). Estas dos palabras definen la primera identidad masculina dada por Dios mismo: el hombre fue creado para trabajar con propósito y para proteger con valentía. Lo trágico del capítulo 3 no es solo que Adán comió el fruto prohibido, sino que el texto nos dice que estaba con ella (v.6) cuando todo ocurrió. No fue engañado como Eva (1 Timoteo 2:14); tomó una decisión consciente de seguir a su esposa en la desobediencia en lugar de ejercer su rol de custodio. La masculinidad que abdicó su responsabilidad de guardar comenzó en ese jardín, y desde entonces cada hombre lleva esa tendencia: ausentarse en los momentos decisivos, no por falta de presencia física, sino por cobardía espiritual. Pablo en Romanos 5:12-19 nos presenta al “segundo Adán” —Jesucristo— quien hizo exactamente lo contrario: donde Adán se retiró, Cristo avanzó; donde Adán trajo muerte, Cristo trajo vida. En Cristo somos restaurados al propósito original: custodios redimidos.", reflection: "¿Qué “jardín” tienes a tu cargo —tu matrimonio, tus hijos, tu comunidad, tu iglesia— del que te estás ausentando? El evangelio te llama a levantarte como el segundo Adán que ahora vive en ti.", prayer: "Señor, donde he abdicado mi responsabilidad de custodio, arrepiénteme y restaurame. Que Cristo, el segundo Adán, se forme en mí y me dé la valentía de guardar lo que me has confiado." },
+            { id: 2, title: "Noé: La Valentía de Obedecer en Público", verse: "Génesis 6:22 y Hebreos 11:7", content: "Noé construyó un arca en un mundo donde probablemente jamás había llovido con esa intensidad. En ese ambiente cultural (Génesis 6:5 pinta que todo designio era solamente el mal) —que el Nuevo Testamento usa como imagen de los últimos tiempos— Noé construyó. No en secreto, no de noche. Construyó durante décadas, delante de todos, aguantando el escarnio de una generación que no creía. Hebreos 11:7 añade un detalle impresionante: lo hizo “con temor reverente”, lo que significa que el motor de su obediencia no era la confianza en sí mismo sino el temor de Dios. Esto define al varón de Dios: no actúa para obtener la aprobación de sus contemporáneos sino desde la convicción de que Dios ha hablado. El arca que Cristo construyó fue la cruz: incomprensible para su generación, motivo de burla, pero el único refugio real.", reflection: "¿Qué arca te está pidiendo Dios que construyas en tu vida que otros no entienden? La obediencia visible en un mundo incrédulo es en sí misma un testimonio profético.", prayer: "Padre, dame el temor reverente de Noé que obedece sin necesitar la validación del entorno. Que mi fe pública sea una declaración de que tú eres real y tu Palabra es suficiente." },
+            { id: 3, title: "Abraham: Salir Sin Saber — El Hombre que Cambió de Horizonte", verse: "Hebreos 11:8-10 y Génesis 12:1-4", content: "Hay tres cosas que Dios le pidió a Abraham que dejara: su tierra (seguridad económica), su parentela (apoyo social), y la casa de su padre (identidad y herencia). Dejar esas tres cosas era equivalente a quedarse sin suelo debajo de los pies. Sin embargo, el texto dice: “Y se fue Abram, como Jehová le dijo.” Sin argumentos, sin negociaciones. Hebreos profundiza: él “esperaba la ciudad que tiene fundamentos, cuyo arquitecto y constructor es Dios.” Se marchó con un horizonte diferente al que el mundo le ofrecía. Muchos hombres paralizan su llamado esperando tener la seguridad perfecta o el plan financiero listo. Abraham solo tenía la Palabra de Dios, y eso resultó ser suficiente. Jesús mismo “dejó” la gloria del cielo para entrar en nuestra pobreza, y en Él encontramos la única ciudad verdadera.", reflection: "¿Qué “seguridad de Ur” estás priorizando sobre el llamado de Dios? No es falta de fe admitir que salir asusta; es fe salir aunque asuste. El horizonte de Dios siempre es más grande.", prayer: "Señor, dame la fe de Abraham para soltar lo conocido y caminar hacia lo que solo tú puedes ver. Que mi seguridad real esté en ti y no en las cosas que cualquier crisis puede arrebatarme." },
+            { id: 4, title: "Abraham: El Altar de Moriah — Fe que No Condiciona", verse: "Génesis 22:1-2, 9-12 y Hebreos 11:17-19", content: "Este episodio es el clímax de la historia de Abraham. ¿Un Dios que pide el sacrificio de un hijo? La clave está en lo que Hebreos 11:19 revela: Abraham calculó que Dios era capaz de resucitar a Isaac. No obedeció porque no amaba a su hijo, sino porque amaba a Dios más que a su hijo más preciado. El texto dice que se levantó de mañana: sin dilación, sin buscar excusas. Aquí está la definición del temor de Dios: la convicción profunda de que Dios merece ser obedecido incluso cuando no entendemos, incluso cuando cuesta. Todo este relato es una imagen anticipada del Padre que sí entregó a su Hijo en el Gólgota (Romanos 8:32). La diferencia es que Dios no detuvo su propia mano. Cristo fue el carnero que apareció en nuestro lugar.", reflection: "¿Hay algún “Isaac” en tu vida —algo o alguien que amas tanto que se ha convertido en un dios práctico? El evangelio no pide que lo destruyas, sino que lo coloques en el altar de Su soberanía.", prayer: "Dios, reconozco que hay cosas que amo profundamente y temo perder. Hoy te entrego lo que más protejo. Que tú seas primero, y todo lo demás encuentre su lugar correcto." },
+            { id: 5, title: "José: Huir de la Tentación — La Pureza como Adoración", verse: "Génesis 39:7-12 y 1 Corintios 6:18-20", content: "La tentación de José no fue una ocasión aislada; la mujer de Potifar lo acosó “cada día”. La realidad del hombre íntegro es que la tentación es persistente. Cuando José ya no pudo rechazarla con palabras, huyó físicamente. Él dio una razón teológica: “¿cómo pecaría contra Dios?”. José no huyó por miedo al castigo, ni por cálculo de consecuencias, sino por amor a Dios. La pureza moral que nace del temor al castigo es frágil; la que nace del amor a Dios es duradera. Nuestros cuerpos son templo del Espíritu Santo, comprados por precio. José pagó un precio enorme (la cárcel) pero “Jehová estaba con él”. Cristo también fue acusado injustamente y su inocencia perfecta es la que cubre nuestra impureza.", reflection: "La tentación sexual hoy viene con acceso instantáneo. José no tenía coartadas; su arma fue huir. ¿Hay situaciones o accesos digitales de los que necesitas huir físicamente hoy?", prayer: "Señor, que mi pureza fluya del amor a ti, no del miedo a las consecuencias. Dame la valentía de huir que tuvo José. Mi cuerpo te pertenece." },
+            { id: 6, title: "Moisés: Preferir el Vituperio de Cristo", verse: "Hebreos 11:24-27 y Éxodo 2:11-15", content: "Moisés creció con acceso a la mejor educación de Egipto, con posición y riqueza. Podría haber tenido todo eso, pero eligió identificarse con un pueblo de esclavos y convertirse en fugitivo. Hebreos dice que tuvo “puesta la mirada en el galardón” y “se sostuvo como viendo al Invisible.” Moisés tomó una decisión sobre un cálculo de valor eterno: lo temporal no vale más que el honor con Dios. El escritor llama a esto “vituperio de Cristo”, viendo la identificación de Moisés con los sufrientes como participación anticipada en el Mesías. Cristo dejó las riquezas del cielo por la pobreza de la encarnación (2 Cor. 8:9).", reflection: "¿Cuál es tu “Egipto” personal —la comodidad, el estatus, la aprobación— que estás priorizando sobre tu llamado? El vituperio por Cristo tiene un eterno peso de gloria.", prayer: "Señor, recalibra mis valores. Que yo vea con los ojos de Moisés lo que vale eternamente versus lo temporal, y que tenga el valor de escoger lo eterno aunque cueste." },
+            { id: 7, title: "Moisés: El Hombre que Hablaba con Dios", verse: "Éxodo 33:11-18 y 2 Corintios 3:7-18", content: "El liderazgo de Moisés es inseparable de su vida de comunión. Él hablaba con Dios “cara a cara, como habla cualquiera con su compañero.” Moisés no administraba solo con estrategias, lideraba desde la intimidad. Cuando la gloria pasaba, él pedía más: “Te ruego que me muestres tu gloria.” El resultado era visible: su rostro resplandecía. Pablo en 2 Corintios 3 muestra que lo que Moisés experimentó veladamente, nosotros lo tenemos de forma permanente en Cristo. El hombre de Dios que lidera —en su hogar, su trabajo o la iglesia— lo hace desde la transformación que produce contemplar a Cristo.", reflection: "¿Cuánto tiempo dedicas a estar genuinamente cara a cara con Dios? ¿Tu familia puede ver el resplandor de tu comunión o solo el agotamiento del activismo?", prayer: "Señor, muéstrame tu gloria. No me conformo con conocerte superficialmente. Quiero la intimidad que transforma y me hace brillar por Cristo reflejado en mí." },
+            { id: 8, title: "Caleb: El Espíritu Diferente", verse: "Números 13:30; 14:24 y Josué 14:6-12", content: "Doce espías vieron el mismo territorio, los mismos gigantes anakim. Diez concluyeron “somos langostas”. Caleb y Josué vieron lo mismo pero con otra conclusión. Dios dijo de Caleb: “hubo en él otro espíritu.” No era valentía natural ni ingenuidad, era un corazón orientado a Dios que filtraba la realidad por la soberanía divina. La pregunta no era “¿podemos nosotros?” sino “¿está Dios con nosotros?”. El resultado fue que Caleb fue el único de su generación que entró, y a los 85 años dijo: “Dame ahora este monte.” Cristo enfrentó al enemigo sin cobardía y venció, dándonos Su Espíritu.", reflection: "¿Qué gigantes determinan tus decisiones hoy? El hombre de Dios no niega a los gigantes; los ve claramente y avanza porque sabe que Dios es mayor.", prayer: "Señor, dame el espíritu de Caleb. Que mi perspectiva de los obstáculos esté filtrada por tu soberanía. Que a mis 40, 50 o 60 años siga diciendo: 'Dame este monte'." },
+            { id: 9, title: "Josué: La Valentía que Nace de Su Presencia", verse: "Josué 1:5-9 y Mateo 28:19-20", content: "Dios le ordenó a Josué que fuera valiente cuatro veces. La tendencia natural ante la incertidumbre es el miedo. El fundamento de la valentía de Josué no era su habilidad táctica, era la promesa: “Como estuve con Moisés, estaré contigo.” La valentía bíblica no es la ausencia del miedo, es la obediencia en presencia del miedo. En el Jordán desbordado, los sacerdotes tuvieron que meter los pies antes de que las aguas se dividieran. Dios esperó que dieran el primer paso de fe. Jesús promete lo mismo: “estaré con vosotros todos los días.” Muchos esperan que el miedo desaparezca antes de actuar.", reflection: "¿Cuál es el “Jordán desbordado” que debes cruzar hoy? La valentía bíblica actúa primero; la parálisis desaparece en el camino.", prayer: "Señor, que tu presencia sea suficiente para dar el primer paso. Recuérdame que nunca camino solo. Dame el valor de mojar los pies en el Jordán." },
+            { id: 10, title: "Gedeón: Dios Llama a lo Débil", verse: "Jueces 6:11-16 y 2 Corintios 12:9-10", content: "Gedeón estaba escondido en un lagar por miedo cuando el ángel lo llamó “varón esforzado y valiente”. Dios declara el futuro como presente. Pero además, Dios redujo su ejército de 32,000 a 300 explícitamente para que Israel no se gloriara a sí mismo. Dios eligió la insuficiencia para que la gloria fuera únicamente de Él. Este es el patrón del evangelio. Dios no busca hombres que lleguen con todo resuelto; busca hombres que reconozcan su insuficiencia y confíen en la suficiencia divina.", reflection: "¿Cuáles son tus excusas (educación, pasado, temperamento)? La debilidad que sientes no es un obstáculo, es el escenario que Dios prefiere para glorificarse.", prayer: "Señor, me has encontrado en mi “lagar” escondido. Reconozco mi insuficiencia pero acepto tu llamado. Glorifícate a través de mi debilidad." },
+            { id: 11, title: "Sansón: Talento Sin Carácter", verse: "Jueces 16:17-20 y Jueces 13:2-5", content: "Sansón nació con el mayor don de fuerza física registrado. Sin embargo, su historia es trágica. Sus debilidades de carácter —lujuria, orgullo, impulsividad— erosionaron su llamado hasta terminar ciego y encadenado. Lo más aterrador es el v. 20: “Mas él no sabía que Jehová ya se había apartado de él.” El alejamiento de Dios puede ser tan gradual que no se percibe. Un talento natural o éxito en los negocios puede coexistir un tiempo con un corazón alejado de Dios. La masculinidad es integridad integrada, no solo capacidad.", reflection: "¿Estás dependiendo de un talento natural mientras descuidas tu vida espiritual? ¿Podría Dios haberse apartado de un área de tu vida sin notarlo?", prayer: "Señor, examiname. No quiero descubrir demasiado tarde que te has apartado. Que mi carácter crezca y sostenga cualquier don que me hayas dado." },
+            { id: 12, title: "Rut y Boaz: El Hombre que Redime", verse: "Rut 2:8-12; 3:10-12 y Efesios 5:25-29", content: "Boaz tenía el poder social para ignorar o explotar a Rut, una viuda extranjera y vulnerable. En cambio, hizo cuatro cosas: la notó, la protegió instruyendo a sus siervos, la honró públicamente y actuó dentro del orden legal correcto. Boaz usó su posición para elevar a la vulnerable. El rol bíblico del varón protector no es control; es hacer más fuerte al débil. Boaz es tipología de Cristo, el verdadero Go’el que tomó nuestra pobreza espiritual y pagó un precio incalculable para darnos dignidad.", reflection: "¿A quién en tu esfera (esposa, hijos, empleados) estás protegiendo y elevando? Usa tu posición para redimir, no para dominar.", prayer: "Señor, hazme como Boaz: un hombre que nota al vulnerable, que protege en lugar de explotar, y que honra en lugar de ignorar." },
+            { id: 13, title: "David: El Corazón Conforme a Dios", verse: "1 Samuel 13:13-14 y Salmo 51:1-4", content: "David y Saúl pecaron gravemente. La diferencia radical estuvo en su respuesta. Saúl buscó justificaciones, culpó al pueblo y minimizó daños (1 Sam 15). Cuando Natán confrontó a David, este respondió: “Pequé contra Jehová” (2 Sam 12:13). Sin excusas. El Salmo 51 es el retrato del corazón quebrantado. Un corazón conforme a Dios no es uno sin fallas, sino uno que cuando cae, corre hacia Dios en lugar de alejarse o justificarse. Cristo es el Hijo de David que reinó con el corazón perfecto.", reflection: "Cuando pecas, ¿te escondes como Adán, te justificas como Saúl, o corres a Dios como David? El evangelio dice: corre hacia Él.", prayer: "Señor, crea en mí un corazón que cuando cae, se levanta hacia ti con arrepentimiento genuino. Que sea el quebrantamiento de David lo que me caracterice." },
+            { id: 14, title: "David y Goliat: Nombrar a Dios Primero", verse: "1 Samuel 17:45-47 y Romanos 8:31-39", content: "El ejército de Israel pensaba “es demasiado grande para vencerlo.” David pensó: “¿quién es este filisteo incircunciso para provocar al Dios viviente?”. David identificó a Goliat como el problema de Dios. Su fe pública estaba sostenida por una historia privada con Dios en el campo (venciendo leones y osos que nadie vio). Pablo dice: “Si Dios es por nosotros, ¿quién contra nosotros?”. El gigante más grande ya fue vencido en la cruz por el Hijo de David.", reflection: "¿Cuál es tu “Goliat”? Reformula: no “¿puedo yo con esto?”, sino “¿puede esto desafiar al Dios que vive en mí?”.", prayer: "Señor, que antes de mirar mis gigantes, te mire a ti. Construye mi fe en la oscuridad del campo para estar listo en las batallas públicas." },
+            { id: 15, title: "Salomón: El Corazón Dividido", verse: "1 Reyes 11:1-4 y Proverbios 4:23", content: "Salomón comenzó pidiendo sabiduría, pero el hombre más sabio del mundo terminó con el corazón dividido tras los ídolos de sus esposas. Como él mismo escribió: “Sobre toda cosa guardada, guarda tu corazón.” Salomón conocía el principio pero falló en aplicarlo. Puedes ser influyente en tu comunidad y tener un corazón que se divide gradualmente por pequeños compromisos acumulados que producen apostasía. Solo en Cristo la sabiduría y la piedad caminan juntas sin dividirnos.", reflection: "¿Qué compromisos graduales o ambiciones están inclinando tu corazón lejos del Señor? El corazón dividido ocurre de a poco.", prayer: "Señor, examina mi corazón. Ilumina los compromisos sutiles que están robando mi devoción exclusiva. Que sea completamente tuyo." },
+            { id: 16, title: "Elías: Dios Alimenta al Hombre Agotado", verse: "1 Reyes 19:3-8 y Hebreos 13:5-6", content: "Tras ganar en el Carmelo, un mensaje de amenaza hizo que Elías huyera al desierto pidiendo morir. El agotamiento profundo puede golpear tras grandes victorias. Dios no lo regañó ni sermoneó. Lo dejó dormir, le dio de comer y lo dejó dormir otra vez. Luego le habló en un susurro. Dios habla al corazón agotado con delicadeza, no a gritos. Cristo tomó nuestra humanidad y nuestro agotamiento para sanarnos desde adentro.", reflection: "Si hoy estás en tu “enebro”, agotado y sintiéndote solo, Dios no te regaña, te alcanza. Come. Descansa. Largo camino te resta.", prayer: "Padre, estoy cansado. Aliméntame con tu presencia como a Elías. Restáurame físicamente y espiritualmente para continuar el llamado." },
+            { id: 17, title: "Nehemías: Liderazgo Integrado", verse: "Nehemías 1:4; 2:4-5 y 4:17-18", content: "Cuando Nehemías oyó de Jerusalén destruida, lloró, ayunó y oró antes de actuar. Entre la pregunta del rey y su respuesta, hubo una oración silenciosa y urgente. Pero no fue solo místico: llegó a Jerusalén, evaluó los muros, organizó a las familias y lideró la obra. Con una mano trabajaban y con la otra sostenían la espada. Nehemías integró oración profunda, planificación inteligente, trabajo físico y valentía inquebrantable.", reflection: "¿Qué “muro caído” debes reconstruir en tu familia o entorno? Empieza de rodillas. Luego planifica, trabaja y defiéndelo.", prayer: "Señor, dame el corazón de Nehemías. Que sepa orar antes de responder, planificar con inteligencia y trabajar con la espada en una mano." },
+            { id: 18, title: "Job: La Fidelidad en el Abismo", verse: "Job 1:20-22; 13:15 y 19:25-27", content: "Job lo perdió todo. A diferencia de la teología fácil de sus amigos, Job clamó y cuestionó, pero siempre ante Dios, no lejos de Él. El lamento bíblico mantiene la conversación abierta. Su fe adulta declaró: “Aunque él me matare, en él esperaré... Yo sé que mi Redentor vive.” Se aferró a Cristo cuando todo fue quitado. El sufrimiento de Job culmina viéndolo cara a cara: “ahora mis ojos te ven.” Cristo también experimentó el abandono para que nosotros nunca seamos abandonados.", reflection: "Si estás en un abismo de pérdida o silencio, no te alejes. El camino es hacia Dios, aunque sea con lágrimas y preguntas duras.", prayer: "Mi Redentor vive. En medio del dolor, me aferro a ti. Que mi sufrimiento me acerque a conocerte más profundamente." },
+            { id: 19, title: "Isaías: Enviado desde el Altar", verse: "Isaías 6:1-8 y Hebreos 10:7", content: "El encuentro genuino con la santidad de Dios produjo en Isaías un profundo quebrantamiento: “¡Ay de mí!”. El orden del ministerio es: ver a Dios → ser quebrado → ser perdonado → ser enviado. El carbón encendido del altar es la cruz. El “heme aquí” de Isaías no fue heroísmo de creerse capaz, fue la disponibilidad de quien ha sido inmensamente perdonado. Cristo vino al mundo con ese mismo “heme aquí” al Padre.", reflection: "¿Tu servicio a Dios nace del orgullo de tus capacidades o de la gratitud de tu perdón? Los que actúan por gratitud no se rinden.", prayer: "Santo, Santo, Santo. En tu presencia veo mi impureza. Toca mis labios con tu cruz y envíame, no porque pueda, sino porque me perdonaste." },
+            { id: 20, title: "Jeremías: El Hombre que no Pudo Callar", verse: "Jeremías 20:7-9 y Mateo 23:37-38", content: "Jeremías confesó querer renunciar por el costo del ministerio, pero “había en mi corazón como un fuego ardiente... no pude.” Esa es la marca de un llamado: la imposibilidad de abandonar lo que Dios puso en tu interior. Lloró por su nación, y esas lágrimas eran amor pastoral, no debilidad. Jesús también lloró sobre Jerusalén. El hombre que ya no puede llorar por los perdidos ha perdido el contacto con el evangelio. La verdadera fortaleza es una compasión valiente.", reflection: "¿Cuándo fue la última vez que lloraste por algo espiritual? Pide a Dios que te devuelva la ternura y quite la anestesia espiritual.", prayer: "Señor, dame las lágrimas de Jeremías y la valentía de seguir hablando. Que el fuego en mis huesos sea tuyo, y que mi corazón sienta lo que el Tuyo." },
+            { id: 21, title: "Daniel: Convicciones que No Negocian", verse: "Daniel 1:8 y 6:10", content: "Sometido a aculturación en Babilonia, Daniel “propuso en su corazón” sus convicciones antes de la presión. La victoria ante la tentación se gana antes de que llegue. Cuando se prohibió orar, Daniel simplemente hizo lo que “solía hacer antes”. Su valentía pública era continuación de su disciplina privada. No puedes ser valiente públicamente si no eres fiel privadamente. Cristo también venció las tentaciones de Babilonia con una convicción inamovible en la Palabra.", reflection: "¿Cuáles son tus “líneas Daniel” donde no estás dispuesto a ceder? Defínelas hoy; la santidad se prepara, no se improvisa.", prayer: "Señor, ayúdame a proponer en mi corazón mis convicciones antes de la presión. Que cuando llegue el edicto, yo ya sepa de qué lado estoy." },
+            { id: 22, title: "Los Tres Hebreos: Fe que No Condiciona", verse: "Daniel 3:16-18, 25 y Romanos 8:35-39", content: "“Y si no”. No dijeron: “Dios nos librará, por eso obedecemos”. Dijeron: “Puede librarnos. Pero si no lo hace, igual no adoraremos.” Es la diferencia entre fe transaccional y fe de alianza. La fe madura permanece en el horno. El cuarto personaje apareció dentro del fuego, y lo único que se quemó fueron las cuerdas que los ataban. Dios permite el horno para quemar lo que nos ata. Cristo pasó por el fuego de la ira de Dios para salvarnos.", reflection: "Si estás en un horno hoy, examina si Dios está quemando dependencias o ídolos. El fuego de Dios destruye lo que te ata, no a ti.", prayer: "Señor, si hay un horno, dame la fe de entrar confiando en que estarás dentro. Que lo único que se queme sean mis ataduras." },
+            { id: 23, title: "Pedro: Del Fracaso a la Restauración", verse: "Juan 21:15-17 y Lucas 22:31-32", content: "Pedro negó tres veces; Jesús lo restauró con tres preguntas. La gracia de Dios no barre el pasado bajo la alfombra, lo redime de frente. El dolor de Pedro en la tercera pregunta fue contrición sanadora. El mayor fracaso de su vida se convirtió en el fundamento de su ministerio: el cobarde terminó predicando ante miles. El evangelio no recluta a hombres perfectos, restaura a los que fallaron y los envía de nuevo.", reflection: "¿Un fracaso pasado te ha convencido de que tu llamado terminó? Jesús te pregunta hoy: “¿Me amas?”. Tu respuesta honesta basta.", prayer: "Señor, Tú lo sabes todo. Sabes mis negaciones. Si restauraste a Pedro, puedes restaurarme. Sí, te amo. Envíame." },
+            { id: 24, title: "Pablo: Masculinidad Crucificada", verse: "Filipenses 3:7-8 y Gálatas 2:20", content: "Pablo tenía el mejor currículum religioso, pero lo consideró “basura” frente a conocer a Cristo. La cultura masculina construye identidad sobre el logro; el evangelio dice “ya no vivo yo, mas vive Cristo en mí.” La masculinidad bíblica no es el ego reformado, es el yo crucificado y Cristo resucitado operando en nuestro lugar. Esto es obra del Espíritu Santo, no mero esfuerzo humano.", reflection: "¿En qué credenciales o logros confías secretamente para justificarte? Nada sirve si impide que Cristo sea el centro.", prayer: "Señor, que todo lo que soy esté bajo Tu autoridad. Que ya no viva yo para mi ego, sino Cristo en mí para Tu gloria." },
+            { id: 25, title: "Pablo: Contentamiento que se Aprende", verse: "Filipenses 4:11-13 y 1 Timoteo 6:6-8", content: "Pablo escribió Filipenses desde la cárcel: “he aprendido a contentarme.” El contentamiento es una habilidad que se adquiere en la adversidad. La cultura masculina exige siempre el siguiente nivel económico o de estatus, generando insatisfacción perpetua. El contentamiento bíblico es la libertad de no ser esclavo de lo que no tienes. “Todo lo puedo en Cristo” significa: puedo enfrentar la abundancia o la escasez porque Él me fortalece en ambas.", reflection: "¿Qué necesitas alcanzar para sentirte satisfecho? Eres esclavo de eso. Practica el contentamiento dando gracias por tu estado actual hoy.", prayer: "Señor, enséñame a contentarme. A descansar genuinamente en Tu provisión. Que Cristo sea suficiente en toda temporada." },
+            { id: 26, title: "Timoteo: Joven, Tímido y Llamado", verse: "1 Timoteo 4:12-16 y 2 Timoteo 1:5-7", content: "Timoteo era joven, con enfermedad crónica y tímido. Pablo no le dijo: “espera a ser mayor”. Le dijo: “Sé ejemplo ahora” en palabra, conducta, amor, espíritu, fe y pureza. La autoridad del varón de Dios no viene de la edad o el cargo, sino del carácter coherente. Y le añade: “Ten cuidado de ti mismo y de la doctrina”. Un hombre que cuida la verdad pero descuida su propia alma es peligroso. Cristo integró perfectamente doctrina y vida.", reflection: "¿En cuál de las 6 áreas (palabra, conducta, amor, espíritu, fe, pureza) tienes mayor debilidad? Trabaja en ella para liderar con integridad.", prayer: "Señor, que mi vida sea ejemplo antes que mi posición. Ayúdame a cuidar mi alma con tanto celo como cuido mi doctrina." },
+            { id: 27, title: "Bernabé: Arte de Ver Potencial", verse: "Hechos 9:26-27; 15:37-39 y 2 Corintios 1:3-4", content: "Bernabé vio potencial donde otros veían riesgo. Apostó por Pablo cuando todos le temían, y por Marcos cuando Pablo lo rechazó. El tiempo le dio la razón en ambos. Su legado no fueron sus sermones, sino ser un “Hijo de Consolación” que levantó a los caídos. En una cultura que busca protagonismo, Bernabé operó desde los márgenes invirtiendo en otros. Cristo es nuestro Consolador y nos llama a hacer lo mismo.", reflection: "¿Hay alguien que ha fallado en quien puedas invertir? ¿Eres conocido por animar o por criticar a los demás?", prayer: "Señor, hazme un hijo de consolación. Dame los ojos de Bernabé para ver potencial donde otros ven fracaso, y levantar a los caídos." },
+            { id: 28, title: "El Padre Pródigo: Correr es Decisión de Hombre", verse: "Lucas 15:20-24 y Romanos 5:8", content: "Un patriarca en el Medio Oriente no corría; era indigno. Pero el padre eligió el amor por encima de su dignidad social, corriendo hacia el hijo que regresaba. Así lo hizo Dios en la encarnación: se “deshonró” asumiendo nuestra pobreza. El padre tenía los ojos en el horizonte, esperando. También salió a buscar al hijo mayor, el que vivía en casa con actitud de empleado resentido. Muchos hombres religiosos viven así, en casa pero sin el gozo del hijo.", reflection: "¿Eres el hijo que huyó o el que está cerca pero resentido? Ambos necesitan gracia. Como líder/padre, ¿esperas en el horizonte listo para perdonar?", prayer: "Padre, gracias porque corriste hacia mí. Enséñame a correr hacia los que fallan sin exigir perfección, reflejando Tu gracia." },
+            { id: 29, title: "La Nube de Testigos: Carrera de Resistencia", verse: "Hebreos 12:1-3 y 2 Timoteo 4:7-8", content: "Adán, Noé, David, Job... no son solo un museo, son un estadio que nos observa. Ellos testifican que la carrera se puede terminar. Para correrla hay que despojarse del peso (miedos, amarguras) y del pecado. Hay que correr con resistencia de maratón, puestos los ojos en Jesús. Él soportó la cruz por el gozo de rescatarnos. Nuestra motivación debe ser el gozo de ver la gloria de Dios en nuestras familias y los que nos seguirán.", reflection: "Mira a los testigos: Job sobrevivió su pérdida, Pedro su negación. Ninguno lo hizo en sus fuerzas, sino por gracia. ¿Qué peso debes soltar hoy?", prayer: "Señor, dame resistencia para el maratón de la fe. Que suelte hoy el peso innecesario y mantenga mis ojos fijos en Ti." },
+            { id: 30, title: "Jesucristo: El Varón Perfecto", verse: "Hebreos 12:2-3 y Filipenses 2:5-8", content: "Adán custodió y falló; Cristo venció. Abraham obedeció; Cristo fue la fe encarnada. Todos los hombres son sombras imperfectas; Jesús es la realidad. Filipenses 2 revela su masculinidad: siendo el más poderoso, se vació de privilegios, tomó forma de siervo y obedeció hasta la muerte. Por eso el Padre lo exaltó. La masculinidad bíblica no es imitar reglas desde afuera; es Cristo formado en nosotros, gobernando el centro del corazón.", reflection: "¿Quién gobierna el centro de tu corazón? Solo cuando Cristo es el centro, las facetas del varón perfecto (valentía, pureza, amor) brotan naturalmente.", prayer: "Señor Jesucristo, que cada día me encuentre más parecido a Ti, porque Tú vives en mí y me transformas desde adentro. Soy Tuyo." }
+        ];
+
+        const MEALS_BASE = {
+            desayuno: [
+                { name: 'Avena Proteica con Manzana', calories: 350, desc: 'Avena hervida, scoop de proteína, canela y manzana picada.' },
+                { name: 'Huevos Revueltos con Espinaca', calories: 320, desc: '3 huevos, espinacas al fallo, chorrito de aceite de oliva y pan integral.' },
+                { name: 'Omelette de Champiñones', calories: 340, desc: '3 huevos, champiñones, cebolla, acompañado de aguacate.' },
+                { name: 'Panqueques de Plátano y Avena', calories: 410, desc: '1 plátano, avena, 2 huevos. Todo licuado y a la sartén.' },
+                { name: 'Tostadas de Aguacate con Huevo', calories: 380, desc: '2 rebanadas pan integral, aguacate triturado y 2 huevos estrellados encima.' },
+                { name: 'Licuado Verde Energizante', calories: 250, desc: 'Espinaca, manzana, apio, scoop de proteína, chía y agua.' },
+                { name: 'Burrito de Huevo con Nopal', calories: 350, desc: 'Tortilla integral grande, 2 huevos revueltos con nopalitos asados.' }
+            ],
+            colacion: [
+                { name: 'Yogur Griego con Almendras', calories: 200, desc: 'Tazón de yogur griego natural (15g proteína) con un puñado de almendras.' },
+                { name: 'Atún con Galletas Habaneras', calories: 220, desc: '1 lata de atún en agua, limón, pico de gallo y 4 galletas.' },
+                { name: 'Puñado de Nueces Mixtas', calories: 180, desc: 'Nueces, almendras, cacahuates tostados (sin sal añadida).' },
+                { name: 'Manzana y Crema de Maní', calories: 210, desc: '1 manzana en gajos con 1 cucharada de crema de maní 100% natural.' },
+                { name: 'Batido de Proteína y Plátano', calories: 250, desc: '1 scoop de suero de leche, 1/2 plátano, agua o leche de almendras.' },
+                { name: 'Queso Panela y Tomate Cherry', calories: 150, desc: 'Cubo generoso de queso panela y un puñado de tomatitos cherry.' }
+            ],
+            almuerzo: [
+                { name: 'Pechuga a la Plancha con Arroz', calories: 450, desc: '200g pechuga, 1 taza arroz integral, ensalada verde abundante.' },
+                { name: 'Bowl de Quinoa y Pollo', calories: 480, desc: 'Quinoa cocida, cubos de pollo asado, aguacate, tomate y pepino.' },
+                { name: 'Fajitas de Res Magra', calories: 500, desc: 'Tiras de res (200g), pimientos, cebolla, 2 tortillas de maíz.' },
+                { name: 'Salmón al Horno con Espárragos', calories: 460, desc: 'Filete de salmón (grasas buenas), espárragos al vapor, papa cocida.' },
+                { name: 'Atún Fresco o Ceviche Sano', calories: 400, desc: 'Medallón de atún o ceviche abundante con tostadas horneadas.' },
+                { name: 'Hamburguesa de Lentejas/Carne Magra', calories: 480, desc: 'Medallón magro, pan integral, mucha lechuga, tomate, sin mayonesa.' },
+                { name: 'Pasta Integral con Pollo', calories: 450, desc: 'Pasta integral al dente, tiras de pollo asado, salsa de tomate natural.' }
+            ],
+            cena: [
+                { name: 'Tacos de Lechuga con Pollo', calories: 300, desc: 'Hojas de lechuga orejona rellenas de pollo deshebrado y aguacate.' },
+                { name: 'Atún en Ensalada Fresca', calories: 280, desc: 'Atún drenado sobre cama de lechuga, espinaca, pepino y vinagreta.' },
+                { name: 'Omelette de Claras y Pavo', calories: 250, desc: '4 claras, 1 yema, jamón de pavo y vegetales.' },
+                { name: 'Sándwich Ligero de Pavo', calories: 320, desc: 'Pan integral, 3 rebanadas pechuga de pavo, tomate, lechuga, mostaza.' },
+                { name: 'Queso Panela Asado', calories: 290, desc: 'Rebanada gruesa de queso panela asado, ensalada de nopales.' },
+                { name: 'Sopa de Lentejas', calories: 300, desc: 'Plato de lentejas cocidas (alta proteína vegetal) con espinaca.' },
+                { name: 'Pechuga Desmenuzada con Verduras', calories: 320, desc: 'Pollo salteado en sartén con cubos de calabaza y zanahoria al dente.' }
+            ]
+        };
+
+        const EXERCISES_DB = [
+            { 
+                type: "Tren Superior", title: "Fuerza Pecho y Brazos", duration: "25 min",
+                focus: "Desarrolla empuje, pecho, tríceps y estabilidad de hombros.",
+                routine: [
+                    { name: "Flexiones Clásicas (Push-ups)", reps: "4 series al fallo", desc: "Alinea las manos a la anchura del pecho. Mantén el abdomen contraído para que la cadera no caiga. Inhala al bajar, exhala al subir. Modificación Fácil: Apoya las rodillas o hazlas inclinadas contra una silla/pared." },
+                    { name: "Fondos en silla (Dips)", reps: "4 series x 12 reps", desc: "Apoya las manos en el borde de una silla firme. Baja lentamente hasta que tus codos formen 90 grados, manteniendo la espalda cerca de la silla. Modificación: Flexiona las piernas acercando los pies a ti." },
+                    { name: "Plancha Isométrica (Plank)", reps: "3 series x 45 seg", desc: "Apóyate en tus antebrazos y puntas de los pies. Mantén la espalda recta (como una tabla). Respira profundo; no contengas el aliento. Modificación: Apoya las rodillas." },
+                    { name: "Flexiones Diamante", reps: "3 series x 10 reps", desc: "Junta los índices y pulgares formando un diamante en el suelo bajo el centro de tu pecho. Enfocado en los tríceps. Modificación: Usa rodillas; el rango de movimiento importa más que estar de puntas." },
+                    { name: "Estiramiento Pectoral", reps: "2 minutos", desc: "Busca el marco de una puerta, apoya tu antebrazo y gira suavemente el torso hacia afuera para abrir y estirar el pecho y el hombro." }
+                ] 
+            },
+            { 
+                type: "Tren Inferior", title: "Piernas de Acero", duration: "25 min",
+                focus: "Fortalecimiento de cuádriceps, glúteos, isquios y pantorrillas.",
+                routine: [
+                    { name: "Sentadillas libres (Squats)", reps: "4 series x 20 reps", desc: "Baja la cadera hacia atrás como si fueras a sentarte, manteniendo el pecho erguido y los talones pegados al suelo. Las rodillas deben seguir la línea del pie, no cerrarse." },
+                    { name: "Zancadas (Lunges)", reps: "3 series x 15 por pierna", desc: "Da un paso al frente y baja la cadera recta. La rodilla de atrás casi toca el piso; la de adelante no pasa la punta del pie en exceso. Usa la pared si pierdes equilibrio." },
+                    { name: "Elevación de pantorrillas", reps: "4 series x 25 reps", desc: "De pie, ponte de puntas aguantando 1 segundo arriba, y baja controlado. Si tienes un escalón, úsalo para bajar el talón por debajo del borde y ganar rango de movimiento." },
+                    { name: "Sentadilla isométrica", reps: "3 series x 45 seg", desc: "Apoya tu espalda plana contra una pared y baja hasta que tus muslos estén paralelos al suelo (silla invisible). Respira y resiste el ardor." },
+                    { name: "Estiramiento de Cuádriceps", reps: "2 minutos", desc: "De pie, lleva tu talón hacia el glúteo sosteniendo el empeine con la mano. Mantén las rodillas juntas y empuja la cadera levemente hacia adelante." }
+                ] 
+            },
+            { 
+                type: "Core / Abdomen", title: "Centro Sólido", duration: "20 min",
+                focus: "Fuerza en la zona media (core) para proteger la espalda baja.",
+                routine: [
+                    { name: "Crunches Abdominales", reps: "4 series x 20 reps", desc: "Boca arriba, rodillas flexionadas. Despega solo los hombros y omóplatos contrayendo fuertemente el abdomen. No entrelaces las manos detrás de la nuca ni jales tu cuello." },
+                    { name: "Elevación de piernas", reps: "3 series x 15 reps", desc: "Coloca las manos bajo tus glúteos. Sube las piernas estiradas y bájalas lento sin tocar el suelo. Modificación: Si sientes molestia en la espalda baja, flexiona las rodillas o no bajes tanto las piernas." },
+                    { name: "Giros Rusos (Russian Twists)", reps: "3 series x 20 reps totales", desc: "Siéntate y reclínate ligeramente hacia atrás (forma de V). Gira tu torso intentando tocar el piso a ambos lados. Fácil: Pies apoyados. Difícil: Pies en el aire." },
+                    { name: "Plancha Lateral", reps: "3 series x 30 seg por lado", desc: "Apóyate sobre un antebrazo de lado, manteniendo el cuerpo recto como una flecha. Modificación: Apoya la rodilla de la pierna inferior en el suelo." },
+                    { name: "Estiramiento Cobra", reps: "1 minuto", desc: "Boca abajo en el suelo, apoya las manos y empuja tu torso hacia arriba (extendiendo brazos) dejando la cadera pegada al piso. Siente cómo se alarga el abdomen." }
+                ] 
+            },
+            { 
+                type: "Cardio HIIT", title: "Quema de Grasa (Cardio)", duration: "20 min",
+                focus: "Alta intensidad para mejorar capacidad pulmonar y resistencia cardiovascular.",
+                routine: [
+                    { name: "Jumping Jacks (Tijeras)", reps: "45 seg trabajo / 15 seg descanso", desc: "Saltos abriendo piernas y brazos al mismo tiempo. Modificación Bajo Impacto: Sin saltar, da un paso lateral rápido alternando piernas mientras subes los brazos." },
+                    { name: "Burpees", reps: "45 seg trabajo / 15 seg descanso", desc: "Manos al suelo, lanza piernas atrás, haz una flexión, recoge piernas y salta. Modificación Bajo Impacto: Hazlo caminando (pierna a pierna) sin saltar y omite la flexión de brazos." },
+                    { name: "High Knees (Rodillas al pecho)", reps: "45 seg trabajo / 15 seg descanso", desc: "Corre en tu lugar elevando las rodillas a la altura de la cadera. Usa tus brazos. Modificación Bajo Impacto: Marcha rápida exagerando la elevación de rodillas sin saltar." },
+                    { name: "Mountain Climbers (Escaladoras)", reps: "45 seg trabajo / 15 seg descanso", desc: "En posición de flexión, lleva las rodillas hacia el pecho de forma alternada y veloz. Mantén la cadera baja y estable." },
+                    { name: "Completar Circuito", reps: "4 Rondas Totales", desc: "Repite los 4 ejercicios anteriores, respetando los tiempos. Toma agua moderadamente al final de la rutina, no en medio." }
+                ] 
+            },
+            { 
+                type: "Cuerpo Completo", title: "Funcional AMRAP", duration: "30 min",
+                focus: "AMRAP = Tantas rondas como sea posible. Reto físico y mental.",
+                routine: [
+                    { name: "Regla del AMRAP (Cronómetro)", reps: "15 Minutos de trabajo continuo", desc: "Inicia el reloj. Trabaja sin detenerte pasando de un ejercicio al otro. Descansa solo si te falta el aire o la técnica falla. Anota cuántas rondas lograste." },
+                    { name: "Ejercicio 1: Burpees", reps: "5 repeticiones", desc: "Mantén un ritmo constante. Recuerda usar la variación de bajo impacto (caminado) si sientes fatiga extrema." },
+                    { name: "Ejercicio 2: Flexiones Clásicas", reps: "10 repeticiones", desc: "Busca profundidad. Si tus brazos fallan durante el AMRAP, baja las rodillas al suelo inmediatamente para no perder el tiempo." },
+                    { name: "Ejercicio 3: Sentadillas Libres", reps: "15 repeticiones", desc: "Rompe el paralelo (baja bien la cadera) manteniendo la postura recta. Usa el impulso de tus talones para subir." },
+                    { name: "Cierre: Plancha y Recuperación", reps: "3 series x 1 minuto", desc: "Al sonar los 15 minutos, recupera el aliento por 2-3 minutos y remata con las planchas isométricas para endurecer el abdomen." }
+                ] 
+            },
+            { 
+                type: "Recuperación", title: "Movilidad y Estiramiento", duration: "15 min",
+                focus: "Día de descanso activo para relajar sistema nervioso y recuperar músculos.",
+                routine: [
+                    { name: "Rotación Articular (Warm-up)", reps: "2 minutos continuos", desc: "Haz círculos amplios y suaves con cuello, hombros, muñecas, cadera y tobillos. Lubricación para evitar rigidez." },
+                    { name: "Tocar Puntas (Isquiotibiales)", reps: "3 series x 30 seg", desc: "De pie, piernas rectas (sin bloquear exageradamente la rodilla), flexiona el tronco intentando tocar el suelo. No hagas rebotes; simplemente deja que la gravedad te baje." },
+                    { name: "Postura del Niño (Yoga)", reps: "2 minutos fijos", desc: "De rodillas, siéntate sobre tus talones, estira los brazos hacia adelante pegados al piso y apoya la frente. Relaja completamente la espalda baja." },
+                    { name: "Torsión de Columna Tumbado", reps: "1 minuto por lado", desc: "Acostado boca arriba, lleva una rodilla al pecho y crúzala por encima de tu cuerpo hacia el suelo opuesto. El brazo contrario extendido. Excelente para espalda baja." },
+                    { name: "Respiración Profunda (Box Breathing)", reps: "3 minutos", desc: "Cierra los ojos. Inhala por la nariz (4 segundos), mantén el aire (4 segundos), exhala por la boca (4 segundos), quédate sin aire (4 segundos). Repite." }
+                ] 
+            }
+        ];
+    </script>
+
+    <!-- Script de la Aplicación (Babel/React) -->
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        // ==========================================
+        // COMPONENTES DE UI REUTILIZABLES
+        // ==========================================
+
+        const Card = ({ children, className = "" }) => (
+            <div className={`bg-surface border border-borderUI rounded-2xl p-5 shadow-lg ${className}`}>
+                {children}
+            </div>
+        );
+
+        const Button = ({ children, onClick, variant = 'primary', className = "" }) => {
+            const baseStyle = "font-bold rounded-xl py-3 px-5 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2";
+            const variants = {
+                primary: "bg-accent text-white hover:bg-accentSec shadow-[0_0_15px_rgba(200,134,26,0.3)]",
+                secondary: "bg-elevated text-textMain hover:bg-borderUI border border-borderUI",
+                outline: "bg-transparent text-accent border border-accent hover:bg-accent hover:text-white",
+            };
+            return (
+                <button onClick={onClick} className={`${baseStyle} ${variants[variant]} ${className}`}>
+                    {children}
+                </button>
+            );
+        };
+
+        const ProgressBar = ({ current, max, colorClass = "bg-accent" }) => {
+            const pct = Math.min(100, Math.max(0, (current / max) * 100));
+            return (
+                <div className="w-full bg-elevated rounded-full h-2.5 overflow-hidden">
+                    <div className={`h-2.5 rounded-full transition-all duration-500 ease-out ${colorClass}`} style={{ width: `${pct}%` }}></div>
+                </div>
+            );
+        };
+
+        // ==========================================
+        // APLICACIÓN PRINCIPAL
+        // ==========================================
+
+        function App() {
+            const [activeTab, setActiveTab] = useState('home');
+            
+            const [user, setUser] = useState(() => {
+                const saved = localStorage.getItem('forjadoUser');
+                if (saved) return JSON.parse(saved);
+                return null; 
+            });
+
+            // "progress" guarda el historial de cada día. 
+            // Para "workout" ahora usamos un array de booleanos igual a las comidas.
+            const [progress, setProgress] = useState(() => {
+                const saved = localStorage.getItem('forjadoProgress');
+                return saved ? JSON.parse(saved) : {};
+            });
+
+            const [favorites, setFavorites] = useState(() => {
+                const saved = localStorage.getItem('forjadoFavorites');
+                return saved ? JSON.parse(saved) : [];
+            });
+
+            // Determinar en qué día del reto estamos (1 al 30)
+            const todayIndex = useMemo(() => {
+                if (!user?.startDate) return 1;
+                const start = new Date(user.startDate).setHours(0,0,0,0);
+                const now = new Date().setHours(0,0,0,0);
+                const diffDays = Math.floor((now - start) / (1000 * 60 * 60 * 24)) + 1;
+                return Math.max(1, Math.min(30, diffDays));
+            }, [user]);
+
+            const dayKey = `day_${todayIndex}`;
+            const todayWorkoutObj = EXERCISES_DB[(todayIndex - 1) % EXERCISES_DB.length];
+            
+            // Si el día no existe en el state, creamos el template por defecto (incluyendo array de workout basado en cantidad de ejercicios)
+            const todayProgress = progress[dayKey] || { 
+                dev: false, 
+                meals: [false, false, false, false, false], 
+                workout: new Array(todayWorkoutObj.routine.length).fill(false), 
+                water: 0 
+            };
+
+            // Asegurar compatibilidad si un usuario ya tenía "workout: false" (versión anterior)
+            const normalizedWorkoutArray = Array.isArray(todayProgress.workout) 
+                ? todayProgress.workout 
+                : new Array(todayWorkoutObj.routine.length).fill(todayProgress.workout === true);
+
+            useEffect(() => {
+                if (user) localStorage.setItem('forjadoUser', JSON.stringify(user));
+                localStorage.setItem('forjadoProgress', JSON.stringify(progress));
+                localStorage.setItem('forjadoFavorites', JSON.stringify(favorites));
+            }, [user, progress, favorites]);
+
+            const updateTodayProgress = (updates) => {
+                setProgress(prev => ({
+                    ...prev,
+                    [dayKey]: { ...todayProgress, ...updates }
+                }));
+            };
+
+            const toggleWorkoutStep = (idx) => {
+                const newWorkout = [...normalizedWorkoutArray];
+                newWorkout[idx] = !newWorkout[idx];
+                updateTodayProgress({ workout: newWorkout });
+            };
+
+            const toggleFavorite = (id) => {
+                setFavorites(prev => prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id]);
+            };
+
+            // Cálculo de Racha
+            const currentStreak = useMemo(() => {
+                let streak = 0;
+                for (let i = todayIndex; i >= 1; i--) {
+                    const p = progress[`day_${i}`];
+                    // Si completó algo, suma. Consideramos "workout completado" si al menos hizo 1 ejercicio.
+                    const didWorkout = p && (Array.isArray(p.workout) ? p.workout.some(w => w) : p.workout === true);
+                    if (p && (p.dev || didWorkout || p.meals.some(m => m) || p.water > 0)) {
+                        streak++;
+                    } else if (i < todayIndex) {
+                        break; 
+                    }
+                }
+                return streak;
+            }, [progress, todayIndex]);
+
+            // Derivados del día
+            const todayMeals = useMemo(() => {
+                const idx = todayIndex - 1;
+                return [
+                    { title: "Desayuno", data: MEALS_BASE.desayuno[idx % MEALS_BASE.desayuno.length] },
+                    { title: "Snack AM", data: MEALS_BASE.colacion[(idx*2) % MEALS_BASE.colacion.length] },
+                    { title: "Almuerzo", data: MEALS_BASE.almuerzo[idx % MEALS_BASE.almuerzo.length] },
+                    { title: "Snack PM", data: MEALS_BASE.colacion[(idx*2 + 1) % MEALS_BASE.colacion.length] },
+                    { title: "Cena", data: MEALS_BASE.cena[idx % MEALS_BASE.cena.length] }
+                ];
+            }, [todayIndex]);
+
+            const todayDevotional = DEVOTIONALS_DB[todayIndex - 1];
+            const todayTip = DAILY_TIPS[todayIndex - 1];
+
+            // ==========================================
+            // VISTAS
+            // ==========================================
+
+            const OnboardingView = () => {
+                const [name, setName] = useState("");
+                
+                const handleStart = (e) => {
+                    e.preventDefault();
+                    if(name.trim()) {
+                        setUser({ name: name.trim(), startDate: new Date().toISOString() });
+                    }
+                };
+
+                return (
+                    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-main text-textMain animate-fade-in relative overflow-hidden">
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-accent opacity-20 blur-[100px] rounded-full pointer-events-none"></div>
+                        
+                        <div className="z-10 w-full max-w-sm text-center">
+                            <i className="ph-fill ph-sword text-accent text-6xl mb-4 drop-shadow-[0_0_15px_rgba(200,134,26,0.5)]"></i>
+                            <h1 className="font-playfair text-4xl font-bold mb-2">FORJADO</h1>
+                            <p className="text-textSec mb-10 font-inter text-sm">Disciplina física. Fortaleza espiritual. Identidad en Cristo.</p>
+                            
+                            <Card className="text-left bg-surface/80 backdrop-blur-md border-borderUI">
+                                <form onSubmit={handleStart}>
+                                    <label className="block text-sm font-semibold text-textSec mb-2 uppercase tracking-widest">¿Cuál es tu nombre?</label>
+                                    <input 
+                                        type="text" 
+                                        required 
+                                        value={name} 
+                                        onChange={e => setName(e.target.value)} 
+                                        className="w-full bg-elevated border border-borderUI rounded-xl px-4 py-3 text-textMain focus:outline-none focus:border-accent transition-colors mb-6"
+                                        placeholder="Ej. David"
+                                    />
+                                    <Button className="w-full text-lg shadow-[0_0_20px_rgba(200,134,26,0.3)]">Comenzar mi Proceso <i className="ph-bold ph-arrow-right"></i></Button>
+                                </form>
+                            </Card>
+                        </div>
+                    </div>
+                );
+            };
+
+            const HomeView = () => {
+                const [isDevoExpanded, setIsDevoExpanded] = useState(false);
+
+                // Progreso diario incluye Devocional (1) + Comidas (5) + Agua (max 8) + Ejercicios (# del array)
+                const workoutStepsCount = normalizedWorkoutArray.length;
+                const totalDailyTasks = 1 + 5 + workoutStepsCount + 8;
+                
+                const completedMealsCount = todayProgress.meals.filter(Boolean).length;
+                const completedWorkoutSteps = normalizedWorkoutArray.filter(Boolean).length;
+                const completedWaterCount = Math.min(8, todayProgress.water || 0);
+                
+                const currentScore = (todayProgress.dev ? 1 : 0) + completedMealsCount + completedWorkoutSteps + completedWaterCount;
+                const progressPct = Math.round((currentScore / totalDailyTasks) * 100);
+
+                return (
+                    <div className="space-y-6 pb-24 pt-4 animate-fade-in">
+                        {/* Header */}
+                        <div className="flex justify-between items-center px-2">
+                            <div>
+                                <h1 className="text-3xl font-playfair font-bold text-textMain">Hola, {user.name}</h1>
+                                <p className="text-textSec text-sm">Día {todayIndex} de 30 del reto FORJADO.</p>
+                            </div>
+                            <div className="bg-elevated px-4 py-2 rounded-xl flex items-center gap-2 border border-borderUI shadow-lg">
+                                <i className="ph-fill ph-fire text-accent text-xl animate-pulse"></i>
+                                <span className="font-bold text-lg">{currentStreak}</span>
+                            </div>
+                        </div>
+
+                        {/* Barra de Progreso General Diario */}
+                        <div className="px-2">
+                            <div className="flex justify-between text-xs font-bold text-textSec mb-2 uppercase tracking-wider">
+                                <span>Progreso del Día</span>
+                                <span className="text-accent">{progressPct}%</span>
+                            </div>
+                            <ProgressBar current={currentScore} max={totalDailyTasks} />
+                        </div>
+
+                        {/* TIP DEL DÍA */}
+                        <div className="px-2">
+                            <div className="bg-elevated border border-accent/30 rounded-xl p-4 flex gap-3 shadow-md relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-24 h-24 bg-accent opacity-10 rounded-bl-full pointer-events-none"></div>
+                                <i className="ph-fill ph-lightbulb text-accent text-2xl shrink-0 animate-pulse mt-1"></i>
+                                <div>
+                                    <h3 className="text-accent font-bold text-xs uppercase tracking-widest mb-1">Consejo de Forja (Día {todayIndex})</h3>
+                                    <p className="text-textMain text-sm leading-relaxed">{todayTip}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 1. DEVOCIONAL DEL DÍA */}
+                        <Card className="relative overflow-hidden group">
+                            <div className="absolute top-0 left-0 w-1 h-full bg-accent"></div>
+                            <div className="flex justify-between items-start mb-4">
+                                <div className="flex items-center gap-2 text-accent">
+                                    <i className="ph-fill ph-book-open-text text-2xl"></i>
+                                    <h2 className="font-bold tracking-wide uppercase text-sm">Devocional</h2>
+                                </div>
+                                {todayProgress.dev && <span className="bg-success/20 text-success px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><i className="ph-bold ph-check"></i> Listo</span>}
+                            </div>
+                            
+                            <h3 className="font-playfair text-2xl font-bold mb-2 leading-tight">{todayDevotional.title}</h3>
+                            <p className="font-cormorant italic text-accentSec text-lg mb-4 leading-snug border-l-2 border-accentSec/30 pl-3">{todayDevotional.verse}</p>
+                            
+                            {isDevoExpanded ? (
+                                <div className="animate-slide-up space-y-4">
+                                    <p className="text-textSec leading-relaxed text-sm whitespace-pre-line">{todayDevotional.content}</p>
+                                    <div className="bg-elevated p-4 rounded-xl border border-borderUI mt-4 space-y-3">
+                                        <div>
+                                            <h4 className="text-xs uppercase font-bold text-accent mb-1"><i className="ph-fill ph-fire"></i> Reflexión de Hierro</h4>
+                                            <p className="text-sm font-medium text-textMain italic">{todayDevotional.reflection}</p>
+                                        </div>
+                                        <div className="pt-3 border-t border-borderUI">
+                                            <h4 className="text-xs uppercase font-bold text-accentSec mb-1"><i className="ph-fill ph-hands-praying"></i> Oración</h4>
+                                            <p className="text-sm font-medium text-textMain">{todayDevotional.prayer}</p>
+                                        </div>
+                                    </div>
+                                    <Button 
+                                        variant={todayProgress.dev ? 'outline' : 'primary'} 
+                                        className="w-full mt-4"
+                                        onClick={() => updateTodayProgress({ dev: !todayProgress.dev })}
+                                    >
+                                        {todayProgress.dev ? "Desmarcar Lectura" : "Completar Lectura Diaria"}
+                                    </Button>
+                                </div>
+                            ) : (
+                                <p className="text-textSec text-sm line-clamp-2">{todayDevotional.content}</p>
+                            )}
+                            
+                            <button onClick={() => setIsDevoExpanded(!isDevoExpanded)} className="text-accent text-sm font-bold mt-4 flex items-center gap-1 hover:text-accentSec transition-colors">
+                                {isDevoExpanded ? "Ocultar Detalles" : "Leer Devocional Completo"} <i className={`ph-bold ph-caret-${isDevoExpanded ? 'up' : 'down'}`}></i>
+                            </button>
+                        </Card>
+
+                        {/* 2. NUTRICIÓN Y COMIDAS */}
+                        <Card>
+                            <div className="flex justify-between items-center mb-4">
+                                <div className="flex items-center gap-2 text-textMain">
+                                    <i className="ph-fill ph-cooking-pot text-2xl text-success"></i>
+                                    <h2 className="font-bold tracking-wide uppercase text-sm">Nutrición</h2>
+                                </div>
+                                <span className="text-xs text-textSec font-bold">{completedMealsCount}/5 Comidas</span>
+                            </div>
+
+                            <div className="space-y-3">
+                                {todayMeals.map((meal, idx) => {
+                                    const isDone = todayProgress.meals[idx];
+                                    return (
+                                        <div key={idx} className={`p-3 rounded-xl border transition-all flex items-start gap-3 ${isDone ? 'bg-success/10 border-success/30' : 'bg-elevated border-borderUI'}`}>
+                                            <button 
+                                                onClick={() => {
+                                                    const newMeals = [...todayProgress.meals];
+                                                    newMeals[idx] = !newMeals[idx];
+                                                    updateTodayProgress({ meals: newMeals });
+                                                }}
+                                                className={`mt-1 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${isDone ? 'bg-success border-success text-main' : 'border-textSec text-transparent'}`}
+                                            >
+                                                <i className="ph-bold ph-check text-xs"></i>
+                                            </button>
+                                            <div className="flex-1">
+                                                <p className={`text-xs font-bold uppercase mb-1 ${isDone ? 'text-success' : 'text-textSec'}`}>{meal.title}</p>
+                                                <p className={`text-sm font-bold mb-1 ${isDone ? 'text-textMain/70 line-through' : 'text-textMain'}`}>{meal.data.name}</p>
+                                                <p className="text-xs text-textSec">{meal.data.desc} <span className="text-accentSec font-bold ml-1">🔥 {meal.data.calories} kcal</span></p>
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+
+                            {/* Hidratación Tracker */}
+                            <div className="mt-5 pt-5 border-t border-borderUI flex items-center justify-between">
+                                <div>
+                                    <h4 className="text-sm font-bold text-textMain">Agua (Vasos)</h4>
+                                    <p className="text-xs text-textSec">Meta: 8 vasos al día</p>
+                                </div>
+                                <div className="flex items-center gap-3 bg-elevated px-3 py-1.5 rounded-xl border border-borderUI">
+                                    <button onClick={() => updateTodayProgress({ water: Math.max(0, (todayProgress.water||0) - 1) })} className="text-textSec hover:text-white p-1"><i className="ph-bold ph-minus"></i></button>
+                                    <span className="font-bold text-lg w-4 text-center text-accent">{todayProgress.water || 0}</span>
+                                    <button onClick={() => updateTodayProgress({ water: (todayProgress.water||0) + 1 })} className="text-accent hover:text-white p-1"><i className="ph-bold ph-plus"></i></button>
+                                </div>
+                            </div>
+                        </Card>
+
+                        {/* 3. EJERCICIO */}
+                        <Card>
+                            <div className="flex justify-between items-start mb-4">
+                                <div className="flex items-center gap-2 text-textMain">
+                                    <i className="ph-fill ph-barbell text-2xl text-accentSec"></i>
+                                    <h2 className="font-bold tracking-wide uppercase text-sm">Entrenamiento</h2>
+                                </div>
+                                <span className="bg-elevated text-xs px-2 py-1 rounded text-textSec font-bold border border-borderUI flex flex-col items-end">
+                                    <span>{todayWorkoutObj.duration}</span>
+                                    <span className="text-[10px] text-accentSec mt-0.5">{completedWorkoutSteps}/{workoutStepsCount} Completos</span>
+                                </span>
+                            </div>
+
+                            <div className="mb-4">
+                                <span className="text-xs uppercase text-accentSec font-bold tracking-wider">{todayWorkoutObj.type}</span>
+                                <h3 className="font-playfair text-xl font-bold mt-1">{todayWorkoutObj.title}</h3>
+                                <p className="text-textSec text-xs mt-2 border-l-2 border-borderUI pl-2 italic">{todayWorkoutObj.focus}</p>
+                            </div>
+
+                            <div className="space-y-3 mb-2">
+                                {todayWorkoutObj.routine.map((step, idx) => {
+                                    const isDone = normalizedWorkoutArray[idx];
+                                    return (
+                                        <div key={idx} className={`p-3 rounded-xl border transition-all flex items-start gap-3 ${isDone ? 'bg-accentSec/10 border-accentSec/30' : 'bg-elevated border-borderUI'}`}>
+                                            <button 
+                                                onClick={() => toggleWorkoutStep(idx)}
+                                                className={`mt-1 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${isDone ? 'bg-accent border-accent text-white' : 'border-textSec text-transparent'}`}
+                                            >
+                                                <i className="ph-bold ph-check text-xs"></i>
+                                            </button>
+                                            <div className="flex-1">
+                                                <p className={`text-sm font-bold ${isDone ? 'text-textMain/70 line-through' : 'text-textMain'}`}>{step.name}</p>
+                                                <p className="text-xs text-accentSec font-bold mb-1"><i className="ph-bold ph-arrows-clockwise mr-1"></i>{step.reps}</p>
+                                                <p className={`text-xs leading-relaxed ${isDone ? 'text-textSec/60' : 'text-textSec'}`}>{step.desc}</p>
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        </Card>
+
+                    </div>
+                );
+            };
+
+            const LibraryView = () => {
+                const [searchTerm, setSearchTerm] = useState("");
+                const [selectedDevo, setSelectedDevo] = useState(null);
+
+                const filtered = DEVOTIONALS_DB.filter(d => 
+                    d.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                    d.content.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+
+                return (
+                    <div className="space-y-6 pb-24 pt-4 animate-fade-in relative">
+                        <div className="px-2">
+                            <h1 className="text-3xl font-playfair font-bold text-textMain mb-2">Biblioteca</h1>
+                            <p className="text-textSec text-sm">Colección de devocionales de masculinidad bíblica.</p>
+                        </div>
+
+                        <div className="px-2 relative">
+                            <i className="ph-bold ph-magnifying-glass absolute left-6 top-1/2 -translate-y-1/2 text-textSec"></i>
+                            <input 
+                                type="text" 
+                                placeholder="Buscar personaje o tema..." 
+                                value={searchTerm}
+                                onChange={e => setSearchTerm(e.target.value)}
+                                className="w-full bg-elevated border border-borderUI rounded-xl pl-12 pr-4 py-3 text-textMain focus:outline-none focus:border-accent transition-colors"
+                            />
+                        </div>
+
+                        <div className="space-y-3 px-2">
+                            {filtered.map((devo, idx) => {
+                                const isFav = favorites.includes(devo.id);
+                                return (
+                                    <div key={devo.id} onClick={() => setSelectedDevo(devo)} className="bg-surface border border-borderUI p-4 rounded-xl flex items-center gap-4 active:scale-[0.98] transition-transform cursor-pointer shadow-md">
+                                        <div className="w-10 h-10 bg-elevated rounded-full flex items-center justify-center shrink-0 border border-borderUI">
+                                            <span className="font-playfair font-bold text-accent">{devo.id}</span>
+                                        </div>
+                                        <div className="flex-1">
+                                            <h3 className="font-bold text-sm text-textMain leading-tight mb-1">{devo.title}</h3>
+                                            <p className="text-xs text-textSec line-clamp-1">{devo.verse}</p>
+                                        </div>
+                                        <button onClick={(e) => { e.stopPropagation(); toggleFavorite(devo.id); }} className="p-2">
+                                            <i className={`text-xl ${isFav ? 'ph-fill ph-star text-accent' : 'ph-bold ph-star text-textSec'}`}></i>
+                                        </button>
+                                    </div>
+                                )
+                            })}
+                        </div>
+
+                        {/* Modal Devocional Completo */}
+                        {selectedDevo && (
+                            <div className="fixed inset-0 z-50 bg-main/90 backdrop-blur-sm flex items-end md:items-center justify-center p-0 md:p-6 animate-fade-in">
+                                <div className="bg-surface w-full md:max-w-2xl h-[85vh] md:h-auto md:max-h-[90vh] rounded-t-3xl md:rounded-3xl border border-borderUI shadow-2xl flex flex-col animate-slide-up">
+                                    <div className="p-4 border-b border-borderUI flex justify-between items-center bg-elevated rounded-t-3xl md:rounded-t-3xl">
+                                        <span className="text-xs font-bold uppercase tracking-widest text-accent">Lectura</span>
+                                        <button onClick={() => setSelectedDevo(null)} className="w-8 h-8 flex items-center justify-center bg-borderUI rounded-full text-textMain">
+                                            <i className="ph-bold ph-x"></i>
+                                        </button>
+                                    </div>
+                                    <div className="p-6 overflow-y-auto no-scrollbar flex-1">
+                                        <h2 className="font-playfair text-3xl font-bold text-textMain mb-4 leading-tight">{selectedDevo.title}</h2>
+                                        <p className="font-cormorant italic text-accentSec text-xl mb-6 border-l-2 border-accentSec/30 pl-4">{selectedDevo.verse}</p>
+                                        <p className="text-textSec text-base leading-relaxed mb-6 whitespace-pre-line">{selectedDevo.content}</p>
+                                        
+                                        <div className="bg-elevated p-5 rounded-2xl border border-borderUI space-y-4">
+                                            <div>
+                                                <h4 className="flex items-center gap-2 text-xs uppercase font-bold text-accent mb-2"><i className="ph-fill ph-fire"></i> Reflexión de Hierro</h4>
+                                                <p className="font-medium text-textMain italic leading-relaxed">{selectedDevo.reflection}</p>
+                                            </div>
+                                            <div className="pt-4 border-t border-borderUI">
+                                                <h4 className="flex items-center gap-2 text-xs uppercase font-bold text-accentSec mb-2"><i className="ph-fill ph-hands-praying"></i> Oración</h4>
+                                                <p className="font-medium text-textMain leading-relaxed">{selectedDevo.prayer}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                );
+            };
+
+            const ProgressView = () => {
+                const daysArray = Array.from({length: 30}, (_, i) => i + 1);
+
+                return (
+                    <div className="space-y-6 pb-24 pt-4 animate-fade-in">
+                        <div className="px-2">
+                            <h1 className="text-3xl font-playfair font-bold text-textMain mb-2">Progreso</h1>
+                            <p className="text-textSec text-sm">El hierro se afila con hierro. Consistencia.</p>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4 px-2">
+                            <Card className="text-center flex flex-col items-center justify-center py-8">
+                                <i className="ph-fill ph-fire text-4xl text-accent mb-2"></i>
+                                <span className="text-3xl font-black">{currentStreak}</span>
+                                <span className="text-xs text-textSec uppercase tracking-wider font-bold mt-1">Racha (Días)</span>
+                            </Card>
+                            <Card className="text-center flex flex-col items-center justify-center py-8">
+                                <i className="ph-fill ph-calendar-check text-4xl text-success mb-2"></i>
+                                <span className="text-3xl font-black">{todayIndex} <span className="text-lg text-textSec font-normal">/ 30</span></span>
+                                <span className="text-xs text-textSec uppercase tracking-wider font-bold mt-1">Día Actual</span>
+                            </Card>
+                        </div>
+
+                        <Card>
+                            <h3 className="font-bold text-sm uppercase tracking-widest text-textSec mb-4">Mapa de Consistencia (30 Días)</h3>
+                            <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
+                                {daysArray.map(day => {
+                                    const p = progress[`day_${day}`];
+                                    let statusClass = "bg-elevated border-borderUI text-textSec/50"; 
+                                    
+                                    if (day <= todayIndex) {
+                                        if (p) {
+                                            const didWorkout = Array.isArray(p.workout) ? p.workout.some(w => w) : p.workout === true;
+                                            const tasksDone = (p.dev?1:0) + (didWorkout?1:0) + p.meals.filter(Boolean).length;
+                                            
+                                            if (tasksDone >= 5) statusClass = "bg-success border-success text-main font-bold shadow-[0_0_10px_rgba(90,122,69,0.4)]"; 
+                                            else if (tasksDone > 0) statusClass = "bg-accentSec border-accentSec text-main font-bold"; 
+                                            else statusClass = "bg-surface border-alert text-alert"; 
+                                        } else {
+                                            statusClass = "bg-surface border-alert text-alert"; 
+                                        }
+                                    }
+
+                                    return (
+                                        <div key={day} className={`aspect-square rounded-lg border flex items-center justify-center text-xs transition-all ${statusClass}`}>
+                                            {day}
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                            <div className="flex items-center gap-4 mt-6 text-xs text-textSec justify-center">
+                                <div className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-success"></span> Excelente</div>
+                                <div className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-accentSec"></span> Parcial</div>
+                                <div className="flex items-center gap-1"><span className="w-3 h-3 rounded border border-alert"></span> Fallo</div>
+                            </div>
+                        </Card>
+                    </div>
+                );
+            };
+
+            const ProfileView = () => {
+                const handleReset = () => {
+                    if(confirm("¿Estás seguro que deseas reiniciar todo tu progreso de los 30 días? Esta acción no se puede deshacer.")) {
+                        localStorage.removeItem('forjadoProgress');
+                        localStorage.removeItem('forjadoUser');
+                        localStorage.removeItem('forjadoFavorites');
+                        window.location.reload();
+                    }
+                };
+
+                let totalDevos = 0;
+                let totalWorkouts = 0;
+                Object.values(progress).forEach(p => {
+                    if(p.dev) totalDevos++;
+                    const didWorkout = Array.isArray(p.workout) ? p.workout.some(w => w) : p.workout === true;
+                    if(didWorkout) totalWorkouts++;
+                });
+
+                return (
+                    <div className="space-y-6 pb-24 pt-4 animate-fade-in">
+                        <div className="px-2">
+                            <h1 className="text-3xl font-playfair font-bold text-textMain mb-2">Perfil</h1>
+                        </div>
+
+                        <Card className="flex items-center gap-4">
+                            <div className="w-16 h-16 bg-elevated rounded-full flex items-center justify-center border-2 border-accent shadow-[0_0_15px_rgba(200,134,26,0.2)]">
+                                <i className="ph-fill ph-user text-3xl text-accentSec"></i>
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-bold">{user.name}</h2>
+                                <p className="text-sm text-textSec">Inició: {new Date(user.startDate).toLocaleDateString()}</p>
+                            </div>
+                        </Card>
+
+                        <div className="px-2">
+                            <h3 className="font-bold text-sm uppercase tracking-widest text-textSec mb-3">Estadísticas de Forja</h3>
+                            <div className="space-y-3">
+                                <div className="bg-surface border border-borderUI p-4 rounded-xl flex justify-between items-center">
+                                    <div className="flex items-center gap-3">
+                                        <i className="ph-fill ph-book-open-text text-accent text-xl"></i>
+                                        <span className="font-medium">Devocionales Leídos</span>
+                                    </div>
+                                    <span className="font-bold text-lg">{totalDevos}</span>
+                                </div>
+                                <div className="bg-surface border border-borderUI p-4 rounded-xl flex justify-between items-center">
+                                    <div className="flex items-center gap-3">
+                                        <i className="ph-fill ph-barbell text-accentSec text-xl"></i>
+                                        <span className="font-medium">Rutinas Realizadas</span>
+                                    </div>
+                                    <span className="font-bold text-lg">{totalWorkouts}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="px-2 mt-8">
+                            <button onClick={handleReset} className="w-full bg-surface border border-alert text-alert py-3 rounded-xl font-bold hover:bg-alert hover:text-white transition-colors flex items-center justify-center gap-2">
+                                <i className="ph-bold ph-warning"></i> Reiniciar Programa de 30 Días
+                            </button>
+                            <p className="text-center text-xs text-textSec mt-4">Forjado App v1.1. Construido con Fe y Disciplina.</p>
+                        </div>
+                    </div>
+                );
+            };
+
+            if (!user) return <OnboardingView />;
+
+            const navItems = [
+                { id: 'home', icon: 'ph-house', label: 'Inicio' },
+                { id: 'library', icon: 'ph-books', label: 'Biblioteca' },
+                { id: 'progress', icon: 'ph-chart-line-up', label: 'Progreso' },
+                { id: 'profile', icon: 'ph-user', label: 'Perfil' }
+            ];
+
+            return (
+                <div className="flex flex-col min-h-screen max-w-md mx-auto bg-main relative shadow-2xl overflow-x-hidden">
+                    <div className="flex-1 overflow-y-auto w-full px-4">
+                        {activeTab === 'home' && <HomeView />}
+                        {activeTab === 'library' && <LibraryView />}
+                        {activeTab === 'progress' && <ProgressView />}
+                        {activeTab === 'profile' && <ProfileView />}
+                    </div>
+
+                    <div className="fixed bottom-0 left-0 w-full bg-surface/90 backdrop-blur-lg border-t border-borderUI pb-safe z-40">
+                        <div className="flex justify-around items-center max-w-md mx-auto">
+                            {navItems.map(item => {
+                                const isActive = activeTab === item.id;
+                                return (
+                                    <button 
+                                        key={item.id} 
+                                        onClick={() => setActiveTab(item.id)}
+                                        className={`flex flex-col items-center justify-center w-full py-3 transition-colors duration-200 ${isActive ? 'text-accent' : 'text-textSec hover:text-textMain'}`}
+                                    >
+                                        <div className="relative">
+                                            <i className={`${isActive ? 'ph-fill' : 'ph'} ${item.icon} text-2xl mb-1 transition-all ${isActive ? 'drop-shadow-[0_0_8px_rgba(200,134,26,0.6)] transform scale-110' : ''}`}></i>
+                                        </div>
+                                        <span className="text-[10px] font-bold tracking-wide uppercase">{item.label}</span>
+                                    </button>
+                                )
+                            })}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
