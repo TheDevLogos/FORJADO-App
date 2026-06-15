@@ -315,14 +315,27 @@
                 return saved ? JSON.parse(saved) : [];
             });
 
-            // Determinar en qué día del reto estamos (1 al 30)
+            // Estado para llevar el rastreo reactivo de la fecha (Mejora: Actualización a medianoche)
+            const [currentDate, setCurrentDate] = useState(() => new Date().setHours(0,0,0,0));
+
+            // Reloj interno: Chequea la fecha cada minuto para actualizar automáticamente si pasa la medianoche
+            useEffect(() => {
+                const interval = setInterval(() => {
+                    const now = new Date().setHours(0,0,0,0);
+                    if (now !== currentDate) {
+                        setCurrentDate(now);
+                    }
+                }, 60000); // 60,000 ms = 1 minuto
+                return () => clearInterval(interval);
+            }, [currentDate]);
+
+            // Determinar en qué día del reto estamos (1 al 30) basado en currentDate
             const todayIndex = useMemo(() => {
                 if (!user?.startDate) return 1;
                 const start = new Date(user.startDate).setHours(0,0,0,0);
-                const now = new Date().setHours(0,0,0,0);
-                const diffDays = Math.floor((now - start) / (1000 * 60 * 60 * 24)) + 1;
+                const diffDays = Math.floor((currentDate - start) / (1000 * 60 * 60 * 24)) + 1;
                 return Math.max(1, Math.min(30, diffDays));
-            }, [user]);
+            }, [user, currentDate]);
 
             const dayKey = `day_${todayIndex}`;
             const todayWorkoutObj = EXERCISES_DB[(todayIndex - 1) % EXERCISES_DB.length];
