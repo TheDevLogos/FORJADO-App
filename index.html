@@ -50,8 +50,17 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     
-    <!-- Babel -->
+    <!-- Babel: Compilador de JSX en el navegador -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- CONFIGURACIÓN PERMANENTE DE BABEL (Evita errores de importación y pantalla negra) -->
+    <script>
+        Babel.registerPreset('react-classic', {
+            presets: [
+                [Babel.availablePresets.react, { runtime: 'classic' }]
+            ]
+        });
+    </script>
 
     <style>
         body {
@@ -78,8 +87,14 @@
 <body class="selection:bg-accent selection:text-white">
     <div id="root"></div>
 
-    <!-- Bases de Datos (JS Estándar para evitar errores de Scope en Babel) -->
-    <script>
+    <!-- Script de la Aplicación (Babel/React con el Preset correcto configurado) -->
+    <script type="text/babel" data-presets="react-classic,env">
+        const { useState, useEffect, useMemo } = React;
+
+        // ==========================================
+        // 1. BASES DE DATOS (Devocionales, Comidas, Ejercicios, Tips)
+        // ==========================================
+
         const DAILY_TIPS = [
             "Fija un horario innegociable para tu entrenamiento de hoy. Lo que no se agenda, no se hace.",
             "Lee el capítulo bíblico completo de donde sale el versículo de hoy. El contexto te dará mayor profundidad.",
@@ -254,8 +269,8 @@
         ];
     </script>
 
-    <!-- Script de la Aplicación (Babel/React) -->
-    <script type="text/babel">
+    <!-- Script de la Aplicación (Babel/React con el Preset correcto configurado) -->
+    <script type="text/babel" data-presets="react-classic,env">
         const { useState, useEffect, useMemo } = React;
 
         // ==========================================
